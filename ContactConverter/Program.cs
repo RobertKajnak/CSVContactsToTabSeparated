@@ -19,6 +19,22 @@ namespace ContactConverter
         const byte _n = 10;
         const byte colon = 59;
 
+
+        static byte[] ProcessCommentIncluding(ref byte b, BinaryReader reader, BinaryWriter writer, ref long i)
+        {
+            writer.Write(tab);
+            byte[] ba = new byte[256];
+            int k = 0;            
+            
+            while (b != colon)
+            {
+                ba[k++] = b;
+                i++;
+                b = reader.ReadByte();
+            }
+            return ba.Take(k).ToArray();
+        }
+
         static byte[] ProcessComment(ref byte b, BinaryReader reader, BinaryWriter writer, ref long i)
         {
             writer.Write(tab);
@@ -60,6 +76,7 @@ namespace ContactConverter
                     b = 0;
                     for (long i = 0; i < length; i++)
                     {
+                        bOld = b;
                         b = reader.ReadByte();
                         switch (b)
                         {
@@ -138,9 +155,9 @@ namespace ContactConverter
 
                             ///default
                             default:
-                                if (!isCommentProcessed && isNameProcessed && b>=97 && b <= 122)
+                                if (!isCommentProcessed && isNameProcessed && b>=97 && b <= 122 && bOld == space)
                                 {
-                                    comment = ProcessComment(ref b, reader, writer, ref i);
+                                    comment = ProcessCommentIncluding(ref b, reader, writer, ref i);
                                     isCommentProcessed = true;
                                 }
                                 writer.Write(b);
@@ -155,6 +172,7 @@ namespace ContactConverter
                             writer.Write(comment);
                         }
                     }
+
                 }
 
             }
