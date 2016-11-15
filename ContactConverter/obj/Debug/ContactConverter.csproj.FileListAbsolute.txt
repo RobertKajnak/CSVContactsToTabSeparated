@@ -1,0 +1,6 @@
+e:\users\hesiris\documents\visual studio 2015\Projects\ContactConverter\ContactConverter\bin\Debug\ContactConverter.exe.config
+e:\users\hesiris\documents\visual studio 2015\Projects\ContactConverter\ContactConverter\bin\Debug\ContactConverter.exe
+e:\users\hesiris\documents\visual studio 2015\Projects\ContactConverter\ContactConverter\bin\Debug\ContactConverter.pdb
+e:\users\hesiris\documents\visual studio 2015\Projects\ContactConverter\ContactConverter\obj\Debug\ContactConverter.csprojResolveAssemblyReference.cache
+e:\users\hesiris\documents\visual studio 2015\Projects\ContactConverter\ContactConverter\obj\Debug\ContactConverter.exe
+e:\users\hesiris\documents\visual studio 2015\Projects\ContactConverter\ContactConverter\obj\Debug\ContactConverter.pdb
