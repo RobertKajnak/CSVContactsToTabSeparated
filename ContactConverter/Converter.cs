@@ -18,12 +18,23 @@ namespace ContactConverter
         private const byte _r = 13;
         private const byte _n = 10;
         private const byte colon = 59;
-        
+
+
         private byte[] ProcessCommentIncluding(ref byte b, BinaryReader reader, BinaryWriter writer, ref long i)
+        {
+            return ProcessCommentIncluding(ref b, reader, writer,ref i, 0);
+        }
+        private byte[] ProcessCommentIncluding(ref byte b, BinaryReader reader, BinaryWriter writer, ref long i, byte lastChar)
         {
             writer.Write(tab);
             byte[] ba = new byte[256];
+            
             int k = 0;
+            if (lastChar != 0)
+            {
+                ba[0] = lastChar;
+                k++;
+            }
 
             while (b != colon)
             {
@@ -63,12 +74,11 @@ namespace ContactConverter
         {
             string fileNameRead = CSVFileName;
             string fileNameWrite = txtFileName;
-            char c;
-            byte b, bOld;
+            byte b, bOld, lastCapital=0;
             long length = new FileInfo(fileNameRead).Length;
             bool isNameProcessed = false;
             bool isCommentProcessed = false;
-
+            
 
 
             byte[] comment = null;
@@ -100,6 +110,12 @@ namespace ContactConverter
                             case (paranthesis):
                                 comment = ProcessComment(ref b, reader, writer, ref i);
                                 comment = comment.Take(comment.Length - 1).ToArray();
+                                if (!isNameProcessed)
+                                {
+                                    writer.Write(tab);
+                                    isNameProcessed = true;
+                                }
+                                isCommentProcessed = true;
 
                                 break;
                             case (hyphon1):
@@ -108,6 +124,12 @@ namespace ContactConverter
                                 i += 2;
 
                                 comment = ProcessComment(ref b, reader, writer, ref i);
+                                if (!isNameProcessed)
+                                {
+                                    writer.Write(tab);
+                                    isNameProcessed = true;
+                                }
+                                isCommentProcessed = true;
                                 break;
 
                             case (44)://,
@@ -116,22 +138,25 @@ namespace ContactConverter
                                 {
                                     comment = ProcessComment(ref b, reader, writer, ref i);
                                     isCommentProcessed = true;
+                                    if (!isNameProcessed)
+                                    {
+                                        writer.Write(tab);
+                                        isNameProcessed = true;
+                                    }
                                 }
                                 else
                                 {
                                     writer.Write(b);
                                 }
                                 break;
-                            case (46):
-                                break;
                             ///field separator
                             case (colon): //;
+
                                 if (!isNameProcessed)
                                 {
-                                    writer.Write(tab);//tab
+                                    writer.Write(tab);
+                                    isNameProcessed = true;
                                 }
-
-                                isNameProcessed = true;
                                 isCommentProcessed = true;
                                 writer.Write(tab);//tab
                                 break;
@@ -145,6 +170,7 @@ namespace ContactConverter
                                 }
                                 writer.Write((byte)13);//\r
                                 writer.Write((byte)10);//\n
+
                                 isNameProcessed = false;
                                 isCommentProcessed = false;
                                 comment = null;
@@ -158,14 +184,41 @@ namespace ContactConverter
 
                             ///default
                             default:
-                                if (!isCommentProcessed && isNameProcessed && b >= 97 && b <= 122 && bOld == space)
+                                if (!isCommentProcessed && isNameProcessed && (b >= 97 && b <= 122) && bOld == space)//starts with small leter
                                 {
                                     comment = ProcessCommentIncluding(ref b, reader, writer, ref i);
+                                    if (!isNameProcessed)
+                                    {
+                                        writer.Write(tab);
+                                        isNameProcessed = true;
+                                    }
                                     isCommentProcessed = true;
+                                }
+                                else if (!isCommentProcessed && isNameProcessed && (b >= 65 && b <= 90) && (bOld>=65 && bOld<=90) )//2 capitals after one another
+                                {
+                                    lastCapital = 0;
+                                    comment = ProcessCommentIncluding(ref b, reader, writer, ref i,bOld);
+                                    isCommentProcessed = true;
+                                    if (!isNameProcessed)
+                                    {
+                                        writer.Write(tab);
+                                        isNameProcessed = true;
+                                    }
                                 }
                                 else
                                 {
-                                    writer.Write(b);
+                                    if (isNameProcessed && (b >= 65 && b <= 90 ) &&!(bOld>65 && bOld<=90))
+                                    {
+                                        lastCapital = b;
+                                    }
+                                    else {
+                                        if (lastCapital != 0)
+                                        {
+                                            writer.Write(lastCapital);
+                                            lastCapital = 0;
+                                        }
+                                        writer.Write(b);
+                                    }
                                 }
                                 
                                 break;
@@ -176,7 +229,11 @@ namespace ContactConverter
                         writer.Write(tab);//tab
                         if (comment != null)
                         {
-                            writer.Write(comment);
+                            //writer.Write(comment);
+                            for (int k = 0; k<comment.Length; k++)
+                            {
+                                writer.Write(comment[k]);
+                            }
                         }
                     }
 
